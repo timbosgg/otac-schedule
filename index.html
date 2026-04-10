@@ -1,0 +1,390 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>OTAC Schedule</title>
+<style>
+  :root {
+    --bg: #0f1117;
+    --bg2: #181b23;
+    --bg3: #1e2130;
+    --bg4: #252839;
+    --border: rgba(255,255,255,0.08);
+    --border2: rgba(255,255,255,0.14);
+    --text: #e8eaf0;
+    --text2: #8b90a0;
+    --text3: #555a6e;
+    --accent: #4f7cff;
+    --campaign-bg: #0d2e1f; --campaign-text: #4ade80; --campaign-border: #1a5c38;
+    --single-bg: #1a1f4a; --single-text: #818cf8; --single-border: #2e3580;
+    --midweek-bg: #3a2200; --midweek-text: #fbbf24; --midweek-border: #6b3f00;
+    --training-bg: #2a1a3e; --training-text: #c084fc; --training-border: #4a2a6e;
+    --open-bg: #1a1c24; --open-text: #555a6e; --open-border: #2a2d3a;
+    --confirmed: #4ade80; --pending: #fbbf24; --cancelled: #f87171;
+    --radius: 8px; --radius-lg: 12px;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: var(--bg); color: var(--text); font-family: 'Segoe UI', system-ui, sans-serif; min-height: 100vh; }
+
+  header { background: var(--bg2); border-bottom: 1px solid var(--border); padding: 16px 24px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px; }
+  .logo { display: flex; align-items: center; gap: 12px; }
+  .logo-mark { width: 36px; height: 36px; background: var(--accent); border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 16px; font-weight: 800; color: #fff; letter-spacing: -1px; }
+  .logo-text { font-size: 18px; font-weight: 700; color: var(--text); }
+  .logo-sub { font-size: 12px; color: var(--text2); margin-top: 1px; }
+  .header-right { display: flex; align-items: center; gap: 16px; flex-wrap: wrap; }
+  .legend { display: flex; gap: 12px; flex-wrap: wrap; }
+  .leg { display: flex; align-items: center; gap: 6px; font-size: 12px; color: var(--text2); }
+  .leg-dot { width: 10px; height: 10px; border-radius: 3px; flex-shrink: 0; }
+  .nav-btns { display: flex; gap: 6px; }
+  .nav-btn { background: var(--bg3); border: 1px solid var(--border2); border-radius: var(--radius); padding: 6px 14px; font-size: 13px; color: var(--text); cursor: pointer; transition: background 0.15s; }
+  .nav-btn:hover { background: var(--bg4); }
+
+  .stats-bar { display: flex; gap: 12px; padding: 12px 24px; background: var(--bg2); border-bottom: 1px solid var(--border); flex-wrap: wrap; }
+  .stat { background: var(--bg3); border-radius: var(--radius); padding: 8px 16px; display: flex; flex-direction: column; gap: 2px; }
+  .stat-label { font-size: 11px; color: var(--text3); font-weight: 600; letter-spacing: 0.05em; text-transform: uppercase; }
+  .stat-val { font-size: 20px; font-weight: 700; color: var(--text); }
+
+  main { padding: 24px; max-width: 1200px; margin: 0 auto; }
+  .month-block { margin-bottom: 32px; }
+  .month-heading { font-size: 13px; font-weight: 700; color: var(--text2); letter-spacing: 0.08em; text-transform: uppercase; margin-bottom: 10px; padding-bottom: 8px; border-bottom: 1px solid var(--border); display: flex; align-items: center; gap: 10px; }
+  .month-heading span { color: var(--text3); font-weight: 400; font-size: 12px; }
+
+  .week-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  @media (max-width: 600px) { .week-grid { grid-template-columns: 1fr; } }
+
+  .week-card { background: var(--bg2); border: 1px solid var(--border); border-radius: var(--radius-lg); overflow: hidden; cursor: pointer; transition: border-color 0.15s; }
+  .week-card:hover { border-color: var(--border2); }
+  .week-card.has-op { border-color: var(--border2); }
+  .wc-header { display: flex; align-items: center; justify-content: space-between; padding: 8px 12px; background: var(--bg3); border-bottom: 1px solid var(--border); }
+  .wc-date { font-size: 12px; font-weight: 700; color: var(--text2); }
+  .wc-day { font-size: 10px; color: var(--accent); font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; }
+  .wc-col-label { font-size: 10px; color: var(--text3); }
+  .wc-body { padding: 10px 12px; display: flex; flex-direction: column; gap: 8px; }
+
+  .slot { display: flex; align-items: flex-start; gap: 8px; }
+  .slot-type-bar { width: 3px; border-radius: 2px; flex-shrink: 0; align-self: stretch; min-height: 36px; }
+  .slot-content { flex: 1; min-width: 0; }
+  .slot-label { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 3px; }
+  .slot-name { font-size: 13px; font-weight: 600; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .slot-meta { font-size: 11px; color: var(--text2); margin-top: 2px; }
+  .slot-empty .slot-name { color: var(--text3); font-style: italic; font-weight: 400; font-size: 12px; }
+  .slot-empty .slot-type-bar { background: var(--open-border); }
+  .slot-empty .slot-label { color: var(--text3); }
+
+  .type-campaign .slot-type-bar { background: var(--campaign-border); }
+  .type-campaign .slot-label { color: var(--campaign-text); }
+  .type-single .slot-type-bar { background: var(--single-border); }
+  .type-single .slot-label { color: var(--single-text); }
+  .type-midweek .slot-type-bar { background: var(--midweek-border); }
+  .type-midweek .slot-label { color: var(--midweek-text); }
+  .type-training .slot-type-bar { background: var(--training-border); }
+  .type-training .slot-label { color: var(--training-text); }
+
+  .status-tag { display: inline-block; border-radius: 4px; padding: 1px 7px; font-size: 10px; font-weight: 700; letter-spacing: 0.04em; }
+  .s-confirmed { background: rgba(74,222,128,0.12); color: var(--confirmed); }
+  .s-pending   { background: rgba(251,191,36,0.12);  color: var(--pending); }
+  .s-cancelled { background: rgba(248,113,113,0.12); color: var(--cancelled); }
+  .s-open      { background: var(--open-bg); color: var(--open-text); border: 1px dashed var(--open-border); }
+
+  .detail-overlay { display: none; background: rgba(0,0,0,0.6); padding: 24px; }
+  .detail-overlay.open { display: block; }
+  .detail-card { background: var(--bg2); border: 1px solid var(--border2); border-radius: var(--radius-lg); max-width: 480px; margin: 0 auto; overflow: hidden; }
+  .detail-header { padding: 14px 16px; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid var(--border); }
+  .detail-title { font-size: 16px; font-weight: 700; color: var(--text); }
+  .detail-close { background: transparent; border: none; color: var(--text2); font-size: 20px; cursor: pointer; line-height: 1; padding: 2px 6px; border-radius: 4px; }
+  .detail-close:hover { background: var(--bg3); color: var(--text); }
+  .detail-body { padding: 16px; display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+  .detail-field { display: flex; flex-direction: column; gap: 3px; }
+  .detail-field.full { grid-column: 1 / -1; }
+  .df-label { font-size: 10px; font-weight: 700; color: var(--text3); text-transform: uppercase; letter-spacing: 0.06em; }
+  .df-val { font-size: 13px; color: var(--text); }
+  .detail-footer { padding: 10px 16px; background: var(--bg3); border-top: 1px solid var(--border); font-size: 11px; color: var(--text3); }
+
+  footer { text-align: center; padding: 24px; font-size: 12px; color: var(--text3); border-top: 1px solid var(--border); margin-top: 8px; }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo">
+    <div class="logo-mark">OT</div>
+    <div>
+      <div class="logo-text">OTAC Schedule</div>
+      <div class="logo-sub">Operation planning board</div>
+    </div>
+  </div>
+  <div class="header-right">
+    <div class="legend">
+      <div class="leg"><div class="leg-dot" style="background:var(--campaign-border);"></div>Campaign</div>
+      <div class="leg"><div class="leg-dot" style="background:var(--single-border);"></div>Single op</div>
+      <div class="leg"><div class="leg-dot" style="background:var(--midweek-border);"></div>Mid-week</div>
+      <div class="leg"><div class="leg-dot" style="background:var(--training-border);"></div>Training</div>
+    </div>
+    <div class="nav-btns">
+      <button class="nav-btn" onclick="scrollToToday()">Today</button>
+    </div>
+  </div>
+</header>
+
+<div class="stats-bar" id="statsBar"></div>
+
+<main id="main"></main>
+
+<div class="detail-overlay" id="detailOverlay" onclick="closeDetail(event)">
+  <div class="detail-card" id="detailCard">
+    <div class="detail-header">
+      <span class="detail-title" id="detailTitle"></span>
+      <button class="detail-close" onclick="closeDetail()">&#215;</button>
+    </div>
+    <div class="detail-body" id="detailBody"></div>
+    <div class="detail-footer" id="detailFooter"></div>
+  </div>
+</div>
+
+<footer>OTAC Schedule &mdash; edit <code>OPS</code> at the top of this file to update the schedule</footer>
+
+<script>
+// ============================================================
+//  EDIT YOUR OPS HERE
+//  Each entry needs:
+//    date:    "YYYY-MM-DD"  — must be a Sunday for main ops
+//                             any day for mid-week
+//    name:    operation name
+//    gm:      game master's name
+//    type:    "campaign" | "single" | "midweek" | "training"
+//    map:     map name
+//    players: player cap as a number
+//    status:  "confirmed" | "pending" | "cancelled"
+//    notes:   any extra info (can be empty string "")
+// ============================================================
+const OPS = [
+  { date:"2025-05-04", name:"Op Iron Veil",         gm:"Cpt. Harkness", type:"campaign", map:"Everon",  players:20, status:"confirmed", notes:"Campaign session 4. BLUFOR assault on eastern hilltop." },
+  { date:"2025-05-07", name:"Op Ember Recon",        gm:"Sgt. Navarro",  type:"midweek",  map:"Arland",  players:8,  status:"confirmed", notes:"Small-team recon. Wednesday night." },
+  { date:"2025-05-11", name:"Op Dusk Runner",        gm:"Sgt. Navarro",  type:"single",   map:"Arland",  players:16, status:"confirmed", notes:"Night stealth insert. Full modset required." },
+  { date:"2025-05-18", name:"Basic infantry drills", gm:"Lt. Osei",      type:"training", map:"Everon",  players:24, status:"confirmed", notes:"New recruit orientation. Mandatory for recruits." },
+  { date:"2025-05-25", name:"Op Crimson Gate",       gm:"Cpt. Harkness", type:"campaign", map:"Everon",  players:20, status:"confirmed", notes:"Campaign session 5." },
+  { date:"2025-06-01", name:"Op Hollow Peak",        gm:"Sgt. Navarro",  type:"single",   map:"Arland",  players:16, status:"pending",   notes:"Armoured assault. Pending CO sign-off." },
+  { date:"2025-06-04", name:"Op Chalk Line",         gm:"Cpl. Vance",    type:"midweek",  map:"Everon",  players:6,  status:"confirmed", notes:"Wednesday op. Sniper/spotter pairs." },
+  { date:"2025-06-15", name:"Op Pale Horizon",       gm:"Cpl. Vance",    type:"campaign", map:"Everon",  players:20, status:"pending",   notes:"Campaign session 6." },
+  { date:"2025-06-29", name:"Op Ember Line",         gm:"Cpl. Vance",    type:"single",   map:"Arland",  players:16, status:"pending",   notes:"River crossing assault." },
+  { date:"2025-07-06", name:"Vehicle ops training",  gm:"Sgt. Navarro",  type:"training", map:"Everon",  players:12, status:"pending",   notes:"Armoured crew certification." },
+  { date:"2025-07-13", name:"Op Frost Watch",        gm:"Cpt. Harkness", type:"campaign", map:"Everon",  players:20, status:"pending",   notes:"Campaign session 7." },
+  { date:"2025-07-27", name:"Op Silent Quarry",      gm:"Sgt. Navarro",  type:"single",   map:"Arland",  players:16, status:"pending",   notes:"" },
+  { date:"2025-08-10", name:"Op Dark Meridian",      gm:"Cpt. Harkness", type:"campaign", map:"Everon",  players:20, status:"pending",   notes:"Campaign session 8." },
+  { date:"2025-08-24", name:"Op Broken Ridge",       gm:"Lt. Osei",      type:"single",   map:"Arland",  players:16, status:"pending",   notes:"" },
+  { date:"2025-09-07", name:"Op Red Anvil",          gm:"Cpt. Harkness", type:"campaign", map:"Everon",  players:20, status:"pending",   notes:"Campaign session 9." },
+  { date:"2025-09-21", name:"Op Grey Tide",          gm:"Cpl. Vance",    type:"single",   map:"Arland",  players:16, status:"pending",   notes:"" },
+  { date:"2025-10-05", name:"Op Iron Dawn",          gm:"Cpt. Harkness", type:"campaign", map:"Everon",  players:20, status:"pending",   notes:"Campaign session 10." },
+];
+
+// ============================================================
+//  CONFIG — adjust if needed
+// ============================================================
+const CONFIG = {
+  monthsAhead: 6,
+  mainOpDay: 0,       // 0 = Sunday
+  unitName: "OTAC Schedule",
+};
+
+// ============================================================
+//  HELPERS
+// ============================================================
+const TYPE_LABELS = { campaign:"Campaign", single:"Single op", midweek:"Mid-week", training:"Training" };
+const STATUS_CLASS = { confirmed:"s-confirmed", pending:"s-pending", cancelled:"s-cancelled", open:"s-open" };
+
+function pad(n){ return String(n).padStart(2,'0'); }
+function dateKey(d){ return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`; }
+function fmtDate(str){ const d=new Date(str+'T12:00:00'); return d.toLocaleDateString('en-AU',{weekday:'short',day:'numeric',month:'long',year:'numeric'}); }
+
+function nextSunday(from){
+  const d = new Date(from);
+  d.setDate(d.getDate() + ((7 - d.getDay()) % 7 || 7));
+  return d;
+}
+
+function getSundays(startDate, months){
+  const sundays = [];
+  const end = new Date(startDate);
+  end.setMonth(end.getMonth() + months);
+  let d = new Date(startDate);
+  if(d.getDay() !== 0) d = nextSunday(d);
+  while(d <= end){
+    sundays.push(new Date(d));
+    d.setDate(d.getDate() + 7);
+  }
+  return sundays;
+}
+
+const opsByDate = {};
+OPS.forEach(op => {
+  if(!opsByDate[op.date]) opsByDate[op.date] = [];
+  opsByDate[op.date].push(op);
+});
+
+// ============================================================
+//  STATS BAR
+// ============================================================
+function renderStats(){
+  const total = OPS.filter(o => o.type !== 'midweek').length;
+  const confirmed = OPS.filter(o => o.status === 'confirmed').length;
+  const open = getSundays(new Date(), CONFIG.monthsAhead).filter(s => !opsByDate[dateKey(s)]).length;
+  const gms = [...new Set(OPS.map(o => o.gm))].length;
+  document.getElementById('statsBar').innerHTML = `
+    <div class="stat"><span class="stat-label">Total ops</span><span class="stat-val">${total}</span></div>
+    <div class="stat"><span class="stat-label">Confirmed</span><span class="stat-val" style="color:var(--confirmed)">${confirmed}</span></div>
+    <div class="stat"><span class="stat-label">Open Sunday slots</span><span class="stat-val" style="color:var(--pending)">${open}</span></div>
+    <div class="stat"><span class="stat-label">GMs scheduled</span><span class="stat-val">${gms}</span></div>
+  `;
+}
+
+// ============================================================
+//  MAIN CALENDAR
+// ============================================================
+function renderCalendar(){
+  const today = new Date();
+  const sundays = getSundays(today, CONFIG.monthsAhead);
+
+  // Group sundays by month
+  const byMonth = {};
+  sundays.forEach(s => {
+    const key = `${s.getFullYear()}-${pad(s.getMonth()+1)}`;
+    if(!byMonth[key]) byMonth[key] = { label: s.toLocaleString('en-AU',{month:'long',year:'numeric'}), sundays: [] };
+    byMonth[key].sundays.push(s);
+  });
+
+  const main = document.getElementById('main');
+  main.innerHTML = '';
+
+  Object.values(byMonth).forEach(month => {
+    const block = document.createElement('div');
+    block.className = 'month-block';
+    const openCount = month.sundays.filter(s => !opsByDate[dateKey(s)]).length;
+    block.innerHTML = `<div class="month-heading">${month.label} <span>${openCount > 0 ? openCount + ' open slot' + (openCount>1?'s':'') : 'fully scheduled'}</span></div>`;
+
+    const grid = document.createElement('div');
+    grid.className = 'week-grid';
+
+    month.sundays.forEach(sunday => {
+      const dk = dateKey(sunday);
+      const isToday = dk === dateKey(today);
+      const isPast = sunday < today;
+
+      // find sunday op and any midweek ops nearby (Mon-Sat of same week)
+      const sundayOps = opsByDate[dk] || [];
+      // midweek: look for ops Mon–Sat of the same week
+      const weekMidweek = [];
+      for(let i=1;i<=6;i++){
+        const wd = new Date(sunday); wd.setDate(sunday.getDate() - sunday.getDay() + i);
+        const wdk = dateKey(wd);
+        if(opsByDate[wdk]) opsByDate[wdk].forEach(o=>{ if(o.type==='midweek') weekMidweek.push({...o, date:wdk}); });
+      }
+
+      const card = document.createElement('div');
+      card.className = 'week-card' + (sundayOps.length ? ' has-op' : '');
+      if(isPast) card.style.opacity = '0.5';
+      if(isToday) card.style.borderColor = 'var(--accent)';
+
+      const dayLabel = sunday.toLocaleDateString('en-AU',{weekday:'short'});
+      const dateLabel = sunday.toLocaleDateString('en-AU',{day:'numeric',month:'short'});
+
+      let slotsHtml = '';
+
+      // Sunday slot
+      if(sundayOps.length){
+        sundayOps.forEach(op => {
+          slotsHtml += slotHtml(op, 'Sunday main op');
+        });
+      } else {
+        slotsHtml += `<div class="slot slot-empty">
+          <div class="slot-type-bar"></div>
+          <div class="slot-content">
+            <div class="slot-label">Sunday main op</div>
+            <div class="slot-name">Open slot</div>
+            <div class="slot-meta">Available to claim</div>
+          </div>
+        </div>`;
+      }
+
+      // Mid-week slot
+      if(weekMidweek.length){
+        weekMidweek.forEach(op => {
+          const mwDate = new Date(op.date+'T12:00:00');
+          const mwLabel = mwDate.toLocaleDateString('en-AU',{weekday:'long'});
+          slotsHtml += slotHtml(op, 'Mid-week · '+mwLabel);
+        });
+      }
+
+      card.innerHTML = `
+        <div class="wc-header">
+          <div>
+            <div class="wc-day">${dayLabel}${isToday?' · this week':''}</div>
+            <div class="wc-date">${dateLabel}</div>
+          </div>
+        </div>
+        <div class="wc-body">${slotsHtml}</div>
+      `;
+
+      // click to open detail for sunday op
+      if(sundayOps.length){
+        card.onclick = () => openDetail(sundayOps[0]);
+      }
+
+      grid.appendChild(card);
+    });
+
+    block.appendChild(grid);
+    main.appendChild(block);
+  });
+}
+
+function slotHtml(op, label){
+  const sc = STATUS_CLASS[op.status] || 's-open';
+  return `<div class="slot type-${op.type}">
+    <div class="slot-type-bar"></div>
+    <div class="slot-content">
+      <div class="slot-label">${label || TYPE_LABELS[op.type]}</div>
+      <div class="slot-name">${op.name}</div>
+      <div class="slot-meta">${op.gm} &middot; ${op.map} &middot; ${op.players} players &nbsp;<span class="status-tag ${sc}">${op.status.toUpperCase()}</span></div>
+    </div>
+  </div>`;
+}
+
+// ============================================================
+//  DETAIL PANEL
+// ============================================================
+function openDetail(op){
+  document.getElementById('detailTitle').textContent = op.name;
+  const sc = STATUS_CLASS[op.status] || 's-open';
+  document.getElementById('detailBody').innerHTML = `
+    <div class="detail-field"><span class="df-label">Date</span><span class="df-val">${fmtDate(op.date)}</span></div>
+    <div class="detail-field"><span class="df-label">Type</span><span class="df-val">${TYPE_LABELS[op.type]}</span></div>
+    <div class="detail-field"><span class="df-label">Game master</span><span class="df-val">${op.gm}</span></div>
+    <div class="detail-field"><span class="df-label">Map</span><span class="df-val">${op.map}</span></div>
+    <div class="detail-field"><span class="df-label">Player cap</span><span class="df-val">${op.players}</span></div>
+    <div class="detail-field"><span class="df-label">Status</span><span class="df-val"><span class="status-tag ${sc}">${op.status.toUpperCase()}</span></span></div>
+    ${op.notes ? `<div class="detail-field full"><span class="df-label">Notes</span><span class="df-val">${op.notes}</span></div>` : ''}
+  `;
+  document.getElementById('detailFooter').textContent = 'To update this op, edit the OPS array in index.html';
+  document.getElementById('detailOverlay').classList.add('open');
+}
+
+function closeDetail(e){
+  if(!e || e.target === document.getElementById('detailOverlay')){
+    document.getElementById('detailOverlay').classList.remove('open');
+  }
+}
+
+function scrollToToday(){
+  const blocks = document.querySelectorAll('.month-block');
+  if(blocks.length) blocks[0].scrollIntoView({behavior:'smooth'});
+}
+
+// ============================================================
+//  INIT
+// ============================================================
+renderStats();
+renderCalendar();
+</script>
+</body>
+</html>
