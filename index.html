@@ -3,388 +3,701 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>OTAC Schedule</title>
+<title>OTAC — Operation Schedule</title>
 <style>
   :root {
-    --bg: #0f1117;
-    --bg2: #181b23;
-    --bg3: #1e2130;
-    --bg4: #252839;
-    --border: rgba(255,255,255,0.08);
-    --border2: rgba(255,255,255,0.14);
-    --text: #e8eaf0;
-    --text2: #8b90a0;
-    --text3: #555a6e;
-    --accent: #4f7cff;
-    --campaign-bg: #0d2e1f; --campaign-text: #4ade80; --campaign-border: #1a5c38;
-    --single-bg: #1a1f4a; --single-text: #818cf8; --single-border: #2e3580;
-    --midweek-bg: #3a2200; --midweek-text: #fbbf24; --midweek-border: #6b3f00;
-    --training-bg: #2a1a3e; --training-text: #c084fc; --training-border: #4a2a6e;
-    --open-bg: #1a1c24; --open-text: #555a6e; --open-border: #2a2d3a;
-    --confirmed: #4ade80; --pending: #fbbf24; --cancelled: #f87171;
-    --radius: 8px; --radius-lg: 12px;
+    --bg:       #0d0f14;
+    --bg2:      #13161d;
+    --bg3:      #1a1d27;
+    --bg4:      #212533;
+    --border:   rgba(255,255,255,0.07);
+    --border2:  rgba(255,255,255,0.13);
+    --text:     #e2e4ed;
+    --text2:    #7c8196;
+    --text3:    #454a5e;
+    --accent:   rgb(93, 121, 93);
+    --accent2:  #394a39ff;
+
+    --sunday-bg:      #0e1e38; --sunday-text:    #60a5fa; --sunday-bar: #2563eb;
+    --unofficial-bg:  #0e2e1a; --unofficial-text:#4ade80; --unofficial-bar:#16a34a;
+    --training-bg:    #2e1a0e; --training-text:  #fb923c; --training-bar:#ea580c;
+    --open-bg:        #13161d; --open-text:      #454a5e; --open-bar:   #2a2d3a;
+
+    --approved:  #4ade80;
+    --pending:   #fbbf24;
+    --cancelled: #f87171;
+    --open-col:  #454a5e;
+
+    --r: 8px; --rlg: 12px;
   }
-  * { box-sizing: border-box; margin: 0; padding: 0; }
-  body { background: var(--bg); color: var(--text); font-family: 'Segoe UI', system-ui, sans-serif; min-height: 100vh; }
 
-  header { background: var(--bg2); border-bottom: 1px solid var(--border); padding: 16px 24px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px; }
-  .logo { display: flex; align-items: center; gap: 12px; }
-  .logo-mark { width: 36px; height: 36px; background: var(--accent); border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 16px; font-weight: 800; color: #fff; letter-spacing: -1px; }
-  .logo-text { font-size: 18px; font-weight: 700; color: var(--text); }
-  .logo-sub { font-size: 12px; color: var(--text2); margin-top: 1px; }
-  .header-right { display: flex; align-items: center; gap: 16px; flex-wrap: wrap; }
-  .legend { display: flex; gap: 12px; flex-wrap: wrap; }
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  html { scroll-behavior: smooth; }
+  body { background: var(--bg); color: var(--text); font-family: 'Segoe UI', system-ui, -apple-system, sans-serif; min-height: 100vh; }
+
+  /* ── HEADER ── */
+  header {
+    background: var(--bg2);
+    border-bottom: 1px solid var(--border);
+    padding: 0 24px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    height: 58px;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    gap: 16px;
+  }
+  .logo { display: flex; align-items: center; gap: 12px; text-decoration: none; }
+  .logo-mark {
+    width: 34px; height: 34px;
+    background: var(--accent);
+    border-radius: 7px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 13px; font-weight: 800; color: #fff; letter-spacing: -0.5px;
+    flex-shrink: 0;
+  }
+  .logo-text { font-size: 16px; font-weight: 700; color: var(--text); line-height: 1.1; }
+  .logo-sub  { font-size: 11px; color: var(--text2); }
+
+  .header-legend { display: flex; gap: 14px; flex-wrap: wrap; }
   .leg { display: flex; align-items: center; gap: 6px; font-size: 12px; color: var(--text2); }
-  .leg-dot { width: 10px; height: 10px; border-radius: 3px; flex-shrink: 0; }
-  .nav-btns { display: flex; gap: 6px; }
-  .nav-btn { background: var(--bg3); border: 1px solid var(--border2); border-radius: var(--radius); padding: 6px 14px; font-size: 13px; color: var(--text); cursor: pointer; transition: background 0.15s; }
-  .nav-btn:hover { background: var(--bg4); }
+  .leg-dot { width: 9px; height: 9px; border-radius: 2px; flex-shrink: 0; }
 
-  .stats-bar { display: flex; gap: 12px; padding: 12px 24px; background: var(--bg2); border-bottom: 1px solid var(--border); flex-wrap: wrap; }
-  .stat { background: var(--bg3); border-radius: var(--radius); padding: 8px 16px; display: flex; flex-direction: column; gap: 2px; }
-  .stat-label { font-size: 11px; color: var(--text3); font-weight: 600; letter-spacing: 0.05em; text-transform: uppercase; }
-  .stat-val { font-size: 20px; font-weight: 700; color: var(--text); }
+  /* ── STATS ── */
+  .stats {
+    background: var(--bg2);
+    border-bottom: 1px solid var(--border);
+    padding: 10px 24px;
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+  }
+  .stat {
+    background: var(--bg3);
+    border-radius: var(--r);
+    padding: 7px 14px;
+    display: flex; flex-direction: column; gap: 1px;
+  }
+  .stat-label { font-size: 10px; color: var(--text3); font-weight: 600; text-transform: uppercase; letter-spacing: 0.06em; }
+  .stat-val   { font-size: 18px; font-weight: 700; color: var(--text); }
 
-  main { padding: 24px; max-width: 1200px; margin: 0 auto; }
-  .month-block { margin-bottom: 32px; }
-  .month-heading { font-size: 13px; font-weight: 700; color: var(--text2); letter-spacing: 0.08em; text-transform: uppercase; margin-bottom: 10px; padding-bottom: 8px; border-bottom: 1px solid var(--border); display: flex; align-items: center; gap: 10px; }
-  .month-heading span { color: var(--text3); font-weight: 400; font-size: 12px; }
+  /* ── NAV ── */
+  .cal-nav {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 16px 24px 8px;
+    max-width: 1100px;
+    margin: 0 auto;
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+  .cal-nav-months { display: flex; gap: 6px; flex-wrap: wrap; }
+  .month-jump {
+    background: var(--bg3);
+    border: 1px solid var(--border);
+    border-radius: var(--r);
+    padding: 5px 12px;
+    font-size: 12px;
+    color: var(--text2);
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+  .month-jump:hover, .month-jump.active { background: var(--accent2); border-color: var(--accent); color: #fff; }
+  .today-btn {
+    background: var(--accent);
+    border: none;
+    border-radius: var(--r);
+    padding: 6px 16px;
+    font-size: 12px;
+    color: #fff;
+    cursor: pointer;
+    font-weight: 600;
+  }
+  .today-btn:hover { background: #3a6aee; }
 
-  .week-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-  @media (max-width: 600px) { .week-grid { grid-template-columns: 1fr; } }
+  /* ── MAIN ── */
+  main { max-width: 1100px; margin: 0 auto; padding: 0 24px 48px; }
 
-  .week-card { background: var(--bg2); border: 1px solid var(--border); border-radius: var(--radius-lg); overflow: hidden; cursor: pointer; transition: border-color 0.15s; }
-  .week-card:hover { border-color: var(--border2); }
-  .week-card.has-op { border-color: var(--border2); }
-  .wc-header { display: flex; align-items: center; justify-content: space-between; padding: 8px 12px; background: var(--bg3); border-bottom: 1px solid var(--border); }
-  .wc-date { font-size: 12px; font-weight: 700; color: var(--text2); }
-  .wc-day { font-size: 10px; color: var(--accent); font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; }
-  .wc-col-label { font-size: 10px; color: var(--text3); }
-  .wc-body { padding: 10px 12px; display: flex; flex-direction: column; gap: 8px; }
+  .month-section { margin-bottom: 36px; }
+  .month-title {
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--text2);
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    padding: 10px 0 8px;
+    border-bottom: 1px solid var(--border);
+    margin-bottom: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .month-title-right { font-size: 11px; color: var(--text3); font-weight: 400; letter-spacing: 0; }
 
-  .slot { display: flex; align-items: flex-start; gap: 8px; }
-  .slot-type-bar { width: 3px; border-radius: 2px; flex-shrink: 0; align-self: stretch; min-height: 36px; }
-  .slot-content { flex: 1; min-width: 0; }
-  .slot-label { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 3px; }
-  .slot-name { font-size: 13px; font-weight: 600; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-  .slot-meta { font-size: 11px; color: var(--text2); margin-top: 2px; }
-  .slot-empty .slot-name { color: var(--text3); font-style: italic; font-weight: 400; font-size: 12px; }
-  .slot-empty .slot-type-bar { background: var(--open-border); }
-  .slot-empty .slot-label { color: var(--text3); }
+  /* ── MONTH GRID ── */
+  .month-grid {
+    display: grid;
+    grid-template-columns: repeat(7, minmax(0, 1fr));
+    border-left: 1px solid var(--border);
+    border-top: 1px solid var(--border);
+  }
+  .day-header {
+    border-right: 1px solid var(--border);
+    border-bottom: 1px solid var(--border);
+    padding: 6px 4px;
+    text-align: center;
+    font-size: 10px;
+    font-weight: 700;
+    color: var(--text3);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    background: var(--bg2);
+  }
+  .day-header.sunday { color: var(--accent); }
 
-  .type-campaign .slot-type-bar { background: var(--campaign-border); }
-  .type-campaign .slot-label { color: var(--campaign-text); }
-  .type-single .slot-type-bar { background: var(--single-border); }
-  .type-single .slot-label { color: var(--single-text); }
-  .type-midweek .slot-type-bar { background: var(--midweek-border); }
-  .type-midweek .slot-label { color: var(--midweek-text); }
-  .type-training .slot-type-bar { background: var(--training-border); }
-  .type-training .slot-label { color: var(--training-text); }
+  .day-cell {
+    border-right: 1px solid var(--border);
+    border-bottom: 1px solid var(--border);
+    min-height: 80px;
+    padding: 5px 5px 4px;
+    background: var(--bg);
+    vertical-align: top;
+    position: relative;
+  }
+  .day-cell.other-month { background: var(--bg2); opacity: 0.4; }
+  .day-cell.is-today { background: var(--bg3); }
+  .day-cell.is-sunday { background: rgba(37,99,235,0.04); }
 
-  .status-tag { display: inline-block; border-radius: 4px; padding: 1px 7px; font-size: 10px; font-weight: 700; letter-spacing: 0.04em; }
-  .s-confirmed { background: rgba(74,222,128,0.12); color: var(--confirmed); }
-  .s-pending   { background: rgba(251,191,36,0.12);  color: var(--pending); }
-  .s-cancelled { background: rgba(248,113,113,0.12); color: var(--cancelled); }
-  .s-open      { background: var(--open-bg); color: var(--open-text); border: 1px dashed var(--open-border); }
+  .day-num {
+    font-size: 11px;
+    color: var(--text3);
+    font-weight: 500;
+    margin-bottom: 3px;
+    width: 20px;
+    height: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+  }
+  .day-cell.is-today .day-num {
+    background: var(--accent);
+    color: #fff;
+    font-weight: 700;
+  }
+  .day-cell.is-sunday .day-num { color: var(--accent); }
 
-  .detail-overlay { display: none; background: rgba(0,0,0,0.6); padding: 24px; }
-  .detail-overlay.open { display: block; }
-  .detail-card { background: var(--bg2); border: 1px solid var(--border2); border-radius: var(--radius-lg); max-width: 480px; margin: 0 auto; overflow: hidden; }
-  .detail-header { padding: 14px 16px; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid var(--border); }
-  .detail-title { font-size: 16px; font-weight: 700; color: var(--text); }
-  .detail-close { background: transparent; border: none; color: var(--text2); font-size: 20px; cursor: pointer; line-height: 1; padding: 2px 6px; border-radius: 4px; }
-  .detail-close:hover { background: var(--bg3); color: var(--text); }
-  .detail-body { padding: 16px; display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
-  .detail-field { display: flex; flex-direction: column; gap: 3px; }
-  .detail-field.full { grid-column: 1 / -1; }
-  .df-label { font-size: 10px; font-weight: 700; color: var(--text3); text-transform: uppercase; letter-spacing: 0.06em; }
-  .df-val { font-size: 13px; color: var(--text); }
-  .detail-footer { padding: 10px 16px; background: var(--bg3); border-top: 1px solid var(--border); font-size: 11px; color: var(--text3); }
+  .event-pill {
+    border-radius: 4px;
+    padding: 2px 5px;
+    font-size: 10px;
+    font-weight: 600;
+    margin-bottom: 2px;
+    cursor: pointer;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    display: block;
+    border-left: 3px solid;
+    transition: opacity 0.1s;
+  }
+  .event-pill:hover { opacity: 0.8; }
+  .pill-sunday      { background: var(--sunday-bg);      color: var(--sunday-text);      border-color: var(--sunday-bar); }
+  .pill-unofficial  { background: var(--unofficial-bg);  color: var(--unofficial-text);  border-color: var(--unofficial-bar); }
+  .pill-training    { background: var(--training-bg);     color: var(--training-text);    border-color: var(--training-bar); }
+  .pill-open        { background: var(--open-bg);         color: var(--open-text);        border-color: var(--open-bar); border-style: dashed; font-weight: 400; font-style: italic; }
 
-  footer { text-align: center; padding: 24px; font-size: 12px; color: var(--text3); border-top: 1px solid var(--border); margin-top: 8px; }
+  /* ── LOADING / ERROR ── */
+  .loading-state {
+    text-align: center;
+    padding: 80px 24px;
+    color: var(--text2);
+  }
+  .spinner {
+    width: 32px; height: 32px;
+    border: 3px solid var(--border2);
+    border-top-color: var(--accent);
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+    margin: 0 auto 16px;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .error-state {
+    text-align: center;
+    padding: 60px 24px;
+    color: var(--cancelled);
+  }
+  .error-state p { color: var(--text2); font-size: 13px; margin-top: 8px; }
+
+  /* ── DETAIL MODAL ── */
+  .modal-bg {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.7);
+    z-index: 200;
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+  }
+  .modal-bg.open { display: flex; }
+  .modal {
+    background: var(--bg2);
+    border: 1px solid var(--border2);
+    border-radius: var(--rlg);
+    width: 100%;
+    max-width: 460px;
+    overflow: hidden;
+  }
+  .modal-header {
+    padding: 14px 16px;
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 12px;
+    border-bottom: 1px solid var(--border);
+  }
+  .modal-type-bar { width: 4px; border-radius: 2px; flex-shrink: 0; align-self: stretch; min-height: 32px; }
+  .modal-title { font-size: 15px; font-weight: 700; color: var(--text); }
+  .modal-date  { font-size: 12px; color: var(--text2); margin-top: 2px; }
+  .modal-close {
+    background: transparent; border: none;
+    color: var(--text2); font-size: 20px;
+    cursor: pointer; line-height: 1;
+    padding: 2px 4px; border-radius: 4px;
+    flex-shrink: 0;
+  }
+  .modal-close:hover { background: var(--bg3); color: var(--text); }
+  .modal-body {
+    padding: 14px 16px;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+  }
+  .mf { display: flex; flex-direction: column; gap: 3px; }
+  .mf.full { grid-column: 1 / -1; }
+  .mf-label { font-size: 10px; font-weight: 700; color: var(--text3); text-transform: uppercase; letter-spacing: 0.06em; }
+  .mf-val   { font-size: 13px; color: var(--text); }
+  .modal-footer {
+    padding: 10px 16px;
+    background: var(--bg3);
+    border-top: 1px solid var(--border);
+    font-size: 11px;
+    color: var(--text3);
+  }
+  .status-badge {
+    display: inline-block;
+    border-radius: 4px;
+    padding: 2px 8px;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+  }
+  .badge-approved  { background: rgba(74,222,128,0.12); color: var(--approved); }
+  .badge-pending   { background: rgba(251,191,36,0.12);  color: var(--pending); }
+  .badge-cancelled { background: rgba(248,113,113,0.12); color: var(--cancelled); }
+  .badge-open      { background: var(--open-bg); color: var(--open-col); border: 1px dashed var(--open-bar); }
+
+  footer {
+    text-align: center;
+    padding: 20px;
+    font-size: 11px;
+    color: var(--text3);
+    border-top: 1px solid var(--border);
+  }
 </style>
 </head>
 <body>
 
 <header>
-  <div class="logo">
-    <div class="logo-mark">OT</div>
+  <a class="logo" href="#">
+    <div class="logo-mark"><img src="/gfx/otac.png" alt="Oceania Tactical" style="width:50px;clip-path:none;outline:none;filter:none;"/></div>
     <div>
-      <div class="logo-text">OTAC Schedule</div>
-      <div class="logo-sub">Operation planning board</div>
+      <div class="logo-text">OTAC</div>
+      <div class="logo-sub">Operation Schedule</div>
     </div>
-  </div>
-  <div class="header-right">
-    <div class="legend">
-      <div class="leg"><div class="leg-dot" style="background:var(--campaign-border);"></div>Campaign</div>
-      <div class="leg"><div class="leg-dot" style="background:var(--single-border);"></div>Single op</div>
-      <div class="leg"><div class="leg-dot" style="background:var(--midweek-border);"></div>Mid-week</div>
-      <div class="leg"><div class="leg-dot" style="background:var(--training-border);"></div>Training</div>
-    </div>
-    <div class="nav-btns">
-      <button class="nav-btn" onclick="scrollToToday()">Today</button>
-    </div>
+  </a>
+  <div class="header-legend">
+    <div class="leg"><div class="leg-dot" style="background:var(--sunday-bar);"></div>Official op</div>
+    <div class="leg"><div class="leg-dot" style="background:var(--unofficial-bar);"></div>Unofficial op</div>
+    <div class="leg"><div class="leg-dot" style="background:var(--training-bar);"></div>Training / Event</div>
+    <div class="leg"><div class="leg-dot" style="background:var(--open-bar);border:1px dashed #555;"></div>Open slot</div>
   </div>
 </header>
 
-<div class="stats-bar" id="statsBar"></div>
+<div class="stats" id="statsBar">
+  <div class="stat"><span class="stat-label">Loading</span><span class="stat-val" style="color:var(--text3);">—</span></div>
+</div>
 
-<main id="main"></main>
+<div class="cal-nav">
+  <div class="cal-nav-months" id="monthJumps"></div>
+  <button class="today-btn" onclick="scrollToToday()">This month</button>
+</div>
 
-<div class="detail-overlay" id="detailOverlay" onclick="closeDetail(event)">
-  <div class="detail-card" id="detailCard">
-    <div class="detail-header">
-      <span class="detail-title" id="detailTitle"></span>
-      <button class="detail-close" onclick="closeDetail()">&#215;</button>
+<main id="main">
+  <div class="loading-state">
+    <div class="spinner"></div>
+    <div>Loading schedule from Google Sheets...</div>
+  </div>
+</main>
+
+<div class="modal-bg" id="modalBg" onclick="closeModal(event)">
+  <div class="modal" id="modal">
+    <div class="modal-header">
+      <div style="display:flex;gap:10px;align-items:flex-start;flex:1;min-width:0;">
+        <div class="modal-type-bar" id="modalBar"></div>
+        <div>
+          <div class="modal-title" id="modalTitle"></div>
+          <div class="modal-date"  id="modalDate"></div>
+        </div>
+      </div>
+      <button class="modal-close" onclick="closeModal()">&#215;</button>
     </div>
-    <div class="detail-body" id="detailBody"></div>
-    <div class="detail-footer" id="detailFooter"></div>
+    <div class="modal-body"   id="modalBody"></div>
+    <div class="modal-footer" id="modalFooter"></div>
   </div>
 </div>
 
-<footer>OTAC Schedule &mdash; edit <code>OPS</code> at the top of this file to update the schedule</footer>
+<footer>OTAC Operation Schedule &mdash; oceaniatactical.com</footer>
 
 <script>
 // ============================================================
-//  EDIT YOUR OPS HERE
-//  Each entry needs:
-//    date:    "YYYY-MM-DD"  — must be a Sunday for main ops
-//                             any day for mid-week
-//    name:    operation name
-//    gm:      game master's name
-//    type:    "campaign" | "single" | "midweek" | "training"
-//    map:     map name
-//    players: player cap as a number
-//    status:  "confirmed" | "pending" | "cancelled"
-//    notes:   any extra info (can be empty string "")
+//  CONFIG — paste your Apps Script Web App URL here
 // ============================================================
-const OPS = [
-  { date:"2025-05-04", name:"Op Iron Veil",         gm:"Cpt. Harkness", type:"campaign", map:"Everon",  players:20, status:"confirmed", notes:"Campaign session 4. BLUFOR assault on eastern hilltop." },
-  { date:"2025-05-07", name:"Op Ember Recon",        gm:"Sgt. Navarro",  type:"midweek",  map:"Arland",  players:8,  status:"confirmed", notes:"Small-team recon. Wednesday night." },
-  { date:"2025-05-11", name:"Op Dusk Runner",        gm:"Sgt. Navarro",  type:"single",   map:"Arland",  players:16, status:"confirmed", notes:"Night stealth insert. Full modset required." },
-  { date:"2025-05-18", name:"Basic infantry drills", gm:"Lt. Osei",      type:"training", map:"Everon",  players:24, status:"confirmed", notes:"New recruit orientation. Mandatory for recruits." },
-  { date:"2025-05-25", name:"Op Crimson Gate",       gm:"Cpt. Harkness", type:"campaign", map:"Everon",  players:20, status:"confirmed", notes:"Campaign session 5." },
-  { date:"2025-06-01", name:"Op Hollow Peak",        gm:"Sgt. Navarro",  type:"single",   map:"Arland",  players:16, status:"pending",   notes:"Armoured assault. Pending CO sign-off." },
-  { date:"2025-06-04", name:"Op Chalk Line",         gm:"Cpl. Vance",    type:"midweek",  map:"Everon",  players:6,  status:"confirmed", notes:"Wednesday op. Sniper/spotter pairs." },
-  { date:"2025-06-15", name:"Op Pale Horizon",       gm:"Cpl. Vance",    type:"campaign", map:"Everon",  players:20, status:"pending",   notes:"Campaign session 6." },
-  { date:"2025-06-29", name:"Op Ember Line",         gm:"Cpl. Vance",    type:"single",   map:"Arland",  players:16, status:"pending",   notes:"River crossing assault." },
-  { date:"2025-07-06", name:"Vehicle ops training",  gm:"Sgt. Navarro",  type:"training", map:"Everon",  players:12, status:"pending",   notes:"Armoured crew certification." },
-  { date:"2025-07-13", name:"Op Frost Watch",        gm:"Cpt. Harkness", type:"campaign", map:"Everon",  players:20, status:"pending",   notes:"Campaign session 7." },
-  { date:"2025-07-27", name:"Op Silent Quarry",      gm:"Sgt. Navarro",  type:"single",   map:"Arland",  players:16, status:"pending",   notes:"" },
-  { date:"2025-08-10", name:"Op Dark Meridian",      gm:"Cpt. Harkness", type:"campaign", map:"Everon",  players:20, status:"pending",   notes:"Campaign session 8." },
-  { date:"2025-08-24", name:"Op Broken Ridge",       gm:"Lt. Osei",      type:"single",   map:"Arland",  players:16, status:"pending",   notes:"" },
-  { date:"2025-09-07", name:"Op Red Anvil",          gm:"Cpt. Harkness", type:"campaign", map:"Everon",  players:20, status:"pending",   notes:"Campaign session 9." },
-  { date:"2025-09-21", name:"Op Grey Tide",          gm:"Cpl. Vance",    type:"single",   map:"Arland",  players:16, status:"pending",   notes:"" },
-  { date:"2025-10-05", name:"Op Iron Dawn",          gm:"Cpt. Harkness", type:"campaign", map:"Everon",  players:20, status:"pending",   notes:"Campaign session 10." },
-];
+const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxzoZYVgFyMDc0lBvyCmCruX41saT05Q4fp5fPSfBUJEVQPiQz7kRLgpgsl_eeFglYiRQ/exec";
 
 // ============================================================
-//  CONFIG — adjust if needed
+//  CONSTANTS
 // ============================================================
-const CONFIG = {
-  monthsAhead: 6,
-  mainOpDay: 0,       // 0 = Sunday
-  unitName: "OTAC Schedule",
+const DAYS = ["Sun","Mon","Tue","Wed","Thu","Fri","Sat"];
+const MONTHS = ["January","February","March","April","May","June","July","August","September","October","November","December"];
+
+const TYPE_META = {
+  sunday:      { label:"Official op",    pillClass:"pill-sunday",     bar:"var(--sunday-bar)",      badgeClass:"badge-approved" },
+  unofficial:  { label:"Unofficial op",  pillClass:"pill-unofficial",  bar:"var(--unofficial-bar)",  badgeClass:"badge-approved" },
+  training:    { label:"Training/Event", pillClass:"pill-training",    bar:"var(--training-bar)",    badgeClass:"badge-approved" },
+  open:        { label:"Open slot",      pillClass:"pill-open",        bar:"var(--open-bar)",        badgeClass:"badge-open" },
 };
 
-// ============================================================
-//  HELPERS
-// ============================================================
-const TYPE_LABELS = { campaign:"Campaign", single:"Single op", midweek:"Mid-week", training:"Training" };
-const STATUS_CLASS = { confirmed:"s-confirmed", pending:"s-pending", cancelled:"s-cancelled", open:"s-open" };
-
-function pad(n){ return String(n).padStart(2,'0'); }
+function pad(n){ return String(n).padStart(2,"0"); }
 function dateKey(d){ return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`; }
-function fmtDate(str){ const d=new Date(str+'T12:00:00'); return d.toLocaleDateString('en-AU',{weekday:'short',day:'numeric',month:'long',year:'numeric'}); }
-
-function nextSunday(from){
-  const d = new Date(from);
-  d.setDate(d.getDate() + ((7 - d.getDay()) % 7 || 7));
-  return d;
+function fmtFull(str){
+  const d = new Date(str+"T12:00:00");
+  return d.toLocaleDateString("en-AU",{weekday:"long",day:"numeric",month:"long",year:"numeric"});
 }
 
-function getSundays(startDate, months){
-  const sundays = [];
-  const end = new Date(startDate);
-  end.setMonth(end.getMonth() + months);
-  let d = new Date(startDate);
-  if(d.getDay() !== 0) d = nextSunday(d);
-  while(d <= end){
-    sundays.push(new Date(d));
-    d.setDate(d.getDate() + 7);
+// ============================================================
+//  DATA FETCH
+// ============================================================
+async function fetchData() {
+  if (APPS_SCRIPT_URL === "YOUR_APPS_SCRIPT_URL_HERE") {
+    return getMockData();
   }
-  return sundays;
+  try {
+    const res = await fetch(APPS_SCRIPT_URL);
+    const json = await res.json();
+    if (json.error) throw new Error(json.error);
+    return json;
+  } catch(e) {
+    throw new Error("Could not load schedule data. " + e.message);
+  }
 }
 
-const opsByDate = {};
-OPS.forEach(op => {
-  if(!opsByDate[op.date]) opsByDate[op.date] = [];
-  opsByDate[op.date].push(op);
-});
-
-// ============================================================
-//  STATS BAR
-// ============================================================
-function renderStats(){
-  const total = OPS.filter(o => o.type !== 'midweek').length;
-  const confirmed = OPS.filter(o => o.status === 'confirmed').length;
-  const open = getSundays(new Date(), CONFIG.monthsAhead).filter(s => !opsByDate[dateKey(s)]).length;
-  const gms = [...new Set(OPS.map(o => o.gm))].length;
-  document.getElementById('statsBar').innerHTML = `
-    <div class="stat"><span class="stat-label">Total ops</span><span class="stat-val">${total}</span></div>
-    <div class="stat"><span class="stat-label">Confirmed</span><span class="stat-val" style="color:var(--confirmed)">${confirmed}</span></div>
-    <div class="stat"><span class="stat-label">Open Sunday slots</span><span class="stat-val" style="color:var(--pending)">${open}</span></div>
-    <div class="stat"><span class="stat-label">GMs scheduled</span><span class="stat-val">${gms}</span></div>
-  `;
-}
-
-// ============================================================
-//  MAIN CALENDAR
-// ============================================================
-function renderCalendar(){
+// Mock data shown before Apps Script is connected
+function getMockData() {
   const today = new Date();
-  const sundays = getSundays(today, CONFIG.monthsAhead);
+  const sunday = [], unofficial = [], training = [];
 
-  // Group sundays by month
-  const byMonth = {};
-  sundays.forEach(s => {
-    const key = `${s.getFullYear()}-${pad(s.getMonth()+1)}`;
-    if(!byMonth[key]) byMonth[key] = { label: s.toLocaleString('en-AU',{month:'long',year:'numeric'}), sundays: [] };
-    byMonth[key].sundays.push(s);
-  });
+  // Generate sundays for 12 months
+  let d = new Date(today);
+  d.setDate(d.getDate() + ((7 - d.getDay()) % 7));
+  const entries = [
+    { offset:0,  name:"Op Iron Veil",         gm:"Cpt. Harkness", map:"Everon",  notes:"Campaign session 4.", status:"APPROVED" },
+    { offset:1,  name:"Op Dusk Runner",        gm:"Sgt. Navarro",  map:"Arland",  notes:"Night stealth insert.", status:"APPROVED" },
+    { offset:2,  name:"Op Crimson Gate",       gm:"Cpt. Harkness", map:"Everon",  notes:"Campaign session 5.", status:"APPROVED" },
+    { offset:4,  name:"Op Pale Horizon",       gm:"Cpl. Vance",    map:"Everon",  notes:"Campaign session 6.", status:"APPROVED" },
+    { offset:6,  name:"Op Ember Line",         gm:"Cpl. Vance",    map:"Arland",  notes:"River crossing.", status:"APPROVED" },
+    { offset:8,  name:"Op Frost Watch",        gm:"Cpt. Harkness", map:"Everon",  notes:"Campaign session 7.", status:"APPROVED" },
+    { offset:10, name:"Op Silent Quarry",      gm:"Sgt. Navarro",  map:"Arland",  notes:"", status:"APPROVED" },
+  ];
 
-  const main = document.getElementById('main');
-  main.innerHTML = '';
+  let s = new Date(d);
+  for(let i=0; i<52; i++){
+    const dk = dateKey(s);
+    const entry = entries.find(e => e.offset === i);
+    sunday.push({
+      date: dk,
+      name: entry ? entry.name : "",
+      gm:   entry ? entry.gm   : "",
+      map:  entry ? entry.map  : "",
+      notes:entry ? entry.notes: "",
+      status: entry ? entry.status : "OPEN",
+      type: "sunday"
+    });
+    s.setDate(s.getDate()+7);
+  }
 
-  Object.values(byMonth).forEach(month => {
-    const block = document.createElement('div');
-    block.className = 'month-block';
-    const openCount = month.sundays.filter(s => !opsByDate[dateKey(s)]).length;
-    block.innerHTML = `<div class="month-heading">${month.label} <span>${openCount > 0 ? openCount + ' open slot' + (openCount>1?'s':'') : 'fully scheduled'}</span></div>`;
+  // A couple of unofficial ops
+  const u1 = new Date(d); u1.setDate(u1.getDate()+3);
+  const u2 = new Date(d); u2.setDate(u2.getDate()+17);
+  unofficial.push({ date:dateKey(u1), name:"Op Chalk Line",   gm:"Cpl. Vance",   map:"Everon", notes:"Sniper/spotter pairs.", status:"APPROVED", type:"unofficial" });
+  unofficial.push({ date:dateKey(u2), name:"Op Night Recon",  gm:"Sgt. Navarro", map:"Arland", notes:"Small team, 8 players.", status:"APPROVED", type:"unofficial" });
 
-    const grid = document.createElement('div');
-    grid.className = 'week-grid';
+  // A training event
+  const t1 = new Date(d); t1.setDate(t1.getDate()+10);
+  training.push({ date:dateKey(t1), name:"Basic infantry drills", gm:"Lt. Osei", map:"Everon", notes:"New recruit orientation.", status:"APPROVED", type:"training" });
 
-    month.sundays.forEach(sunday => {
-      const dk = dateKey(sunday);
-      const isToday = dk === dateKey(today);
-      const isPast = sunday < today;
+  return { sunday, unofficial, training };
+}
 
-      // find sunday op and any midweek ops nearby (Mon-Sat of same week)
-      const sundayOps = opsByDate[dk] || [];
-      // midweek: look for ops Mon–Sat of the same week
-      const weekMidweek = [];
-      for(let i=1;i<=6;i++){
-        const wd = new Date(sunday); wd.setDate(sunday.getDate() - sunday.getDay() + i);
-        const wdk = dateKey(wd);
-        if(opsByDate[wdk]) opsByDate[wdk].forEach(o=>{ if(o.type==='midweek') weekMidweek.push({...o, date:wdk}); });
+// ============================================================
+//  BUILD CALENDAR
+// ============================================================
+function buildCalendar(data) {
+  const today = new Date();
+  const todayKey = dateKey(today);
+
+  // Index all events by date
+  const byDate = {};
+  const addEvent = (op) => {
+    if(!byDate[op.date]) byDate[op.date] = [];
+    byDate[op.date].push(op);
+  };
+
+  // Sunday ops — include open slots too
+  data.sunday.forEach(op => addEvent(op));
+  data.unofficial.forEach(op => addEvent(op));
+  data.training.forEach(op => addEvent(op));
+
+  // Stats
+  const totalSundays = data.sunday.length;
+  const approved = data.sunday.filter(o => o.status === "APPROVED").length;
+  const open = data.sunday.filter(o => o.status === "OPEN" || !o.name).length;
+  const unofficial = data.unofficial.length;
+  const training = data.training.length;
+
+  document.getElementById("statsBar").innerHTML = `
+    <div class="stat"><span class="stat-label">Official ops</span><span class="stat-val">${totalSundays}</span></div>
+    <div class="stat"><span class="stat-label">Confirmed</span><span class="stat-val" style="color:var(--approved)">${approved}</span></div>
+    <div class="stat"><span class="stat-label">Open slots</span><span class="stat-val" style="color:var(--pending)">${open}</span></div>
+    <div class="stat"><span class="stat-label">Unofficial ops</span><span class="stat-val" style="color:var(--unofficial-text)">${unofficial}</span></div>
+    <div class="stat"><span class="stat-label">Training / Events</span><span class="stat-val" style="color:var(--training-text)">${training}</span></div>
+  `;
+
+  // Generate 12 months starting from current month
+  const months = [];
+  for(let i=0; i<12; i++){
+    const d = new Date(today.getFullYear(), today.getMonth()+i, 1);
+    months.push({ year: d.getFullYear(), month: d.getMonth() });
+  }
+
+  // Month jump nav
+  document.getElementById("monthJumps").innerHTML = months.map(m =>
+    `<button class="month-jump" onclick="jumpTo('month-${m.year}-${m.month}')" id="jump-${m.year}-${m.month}">
+      ${MONTHS[m.month].slice(0,3)} ${m.year}
+    </button>`
+  ).join("");
+
+  // Render months
+  const main = document.getElementById("main");
+  main.innerHTML = "";
+
+  months.forEach(({year, month}) => {
+    const section = document.createElement("div");
+    section.className = "month-section";
+    section.id = `month-${year}-${month}`;
+
+    const firstDay = new Date(year, month, 1).getDay();
+    const daysInMonth = new Date(year, month+1, 0).getDate();
+    const daysInPrev = new Date(year, month, 0).getDate();
+
+    // Count open sunday slots this month
+    let openCount = 0, totalCount = 0;
+    for(let d=1; d<=daysInMonth; d++){
+      const dd = new Date(year, month, d);
+      if(dd.getDay() === 0){
+        totalCount++;
+        const dk = dateKey(dd);
+        const ops = byDate[dk] || [];
+        const sundayOp = ops.find(o => o.type === "sunday");
+        if(!sundayOp || !sundayOp.name) openCount++;
       }
+    }
 
-      const card = document.createElement('div');
-      card.className = 'week-card' + (sundayOps.length ? ' has-op' : '');
-      if(isPast) card.style.opacity = '0.5';
-      if(isToday) card.style.borderColor = 'var(--accent)';
+    section.innerHTML = `
+      <div class="month-title">
+        ${MONTHS[month]} ${year}
+        <span class="month-title-right">${openCount > 0 ? openCount+" open Sunday slot"+(openCount>1?"s":"") : "All Sundays filled"}</span>
+      </div>
+      <div class="month-grid" id="grid-${year}-${month}"></div>
+    `;
+    main.appendChild(section);
 
-      const dayLabel = sunday.toLocaleDateString('en-AU',{weekday:'short'});
-      const dateLabel = sunday.toLocaleDateString('en-AU',{day:'numeric',month:'short'});
+    const grid = section.querySelector(".month-grid");
 
-      let slotsHtml = '';
-
-      // Sunday slot
-      if(sundayOps.length){
-        sundayOps.forEach(op => {
-          slotsHtml += slotHtml(op, 'Sunday main op');
-        });
-      } else {
-        slotsHtml += `<div class="slot slot-empty">
-          <div class="slot-type-bar"></div>
-          <div class="slot-content">
-            <div class="slot-label">Sunday main op</div>
-            <div class="slot-name">Open slot</div>
-            <div class="slot-meta">Available to claim</div>
-          </div>
-        </div>`;
-      }
-
-      // Mid-week slot
-      if(weekMidweek.length){
-        weekMidweek.forEach(op => {
-          const mwDate = new Date(op.date+'T12:00:00');
-          const mwLabel = mwDate.toLocaleDateString('en-AU',{weekday:'long'});
-          slotsHtml += slotHtml(op, 'Mid-week · '+mwLabel);
-        });
-      }
-
-      card.innerHTML = `
-        <div class="wc-header">
-          <div>
-            <div class="wc-day">${dayLabel}${isToday?' · this week':''}</div>
-            <div class="wc-date">${dateLabel}</div>
-          </div>
-        </div>
-        <div class="wc-body">${slotsHtml}</div>
-      `;
-
-      // click to open detail for sunday op
-      if(sundayOps.length){
-        card.onclick = () => openDetail(sundayOps[0]);
-      }
-
-      grid.appendChild(card);
+    // Day headers
+    DAYS.forEach((d,i) => {
+      const h = document.createElement("div");
+      h.className = "day-header" + (i===0?" sunday":"");
+      h.textContent = d;
+      grid.appendChild(h);
     });
 
-    block.appendChild(grid);
-    main.appendChild(block);
+    // Build cells
+    let cells = [];
+    for(let i=firstDay-1; i>=0; i--) cells.push({ day: daysInPrev-i, cur: false });
+    for(let d=1; d<=daysInMonth; d++) cells.push({ day: d, cur: true });
+    while(cells.length % 7 !== 0) cells.push({ day: cells.length-firstDay-daysInMonth+1, cur: false });
+
+    cells.forEach(cell => {
+      const div = document.createElement("div");
+      const cellMonth = cell.cur ? month : (cells.indexOf(cell) < firstDay ? month-1 : month+1);
+      const cellYear  = cellMonth < 0 ? year-1 : cellMonth > 11 ? year+1 : year;
+      const realMonth = ((cellMonth%12)+12)%12;
+      const d = new Date(cellYear, realMonth, cell.day);
+      const dk = dateKey(d);
+      const isSunday = d.getDay() === 0;
+      const isToday  = dk === todayKey;
+
+      div.className = "day-cell"
+        + (!cell.cur ? " other-month" : "")
+        + (isToday   ? " is-today"    : "")
+        + (isSunday && cell.cur ? " is-sunday" : "");
+
+      const numDiv = document.createElement("div");
+      numDiv.className = "day-num";
+      numDiv.textContent = cell.day;
+      div.appendChild(numDiv);
+
+      if(cell.cur){
+        const events = byDate[dk] || [];
+
+        // If sunday and no entry, show open slot
+        if(isSunday){
+          const sundayOp = events.find(o => o.type === "sunday");
+          if(!sundayOp || !sundayOp.name){
+            const pill = makePill({ type:"open", name:"Open slot", date:dk }, "open");
+            div.appendChild(pill);
+          }
+        }
+
+        // Show all events for this date
+        events.forEach(op => {
+          if(op.type === "sunday" && !op.name) return; // skip unnamed sundays (already shown as open)
+          if(op.status === "CANCELLED") return;
+          const pillType = op.type;
+          const pill = makePill(op, pillType);
+          div.appendChild(pill);
+        });
+      }
+
+      grid.appendChild(div);
+    });
   });
+
+  // Highlight current month jump button
+  highlightCurrentMonth();
 }
 
-function slotHtml(op, label){
-  const sc = STATUS_CLASS[op.status] || 's-open';
-  return `<div class="slot type-${op.type}">
-    <div class="slot-type-bar"></div>
-    <div class="slot-content">
-      <div class="slot-label">${label || TYPE_LABELS[op.type]}</div>
-      <div class="slot-name">${op.name}</div>
-      <div class="slot-meta">${op.gm} &middot; ${op.map} &middot; ${op.players} players &nbsp;<span class="status-tag ${sc}">${op.status.toUpperCase()}</span></div>
-    </div>
-  </div>`;
-}
-
-// ============================================================
-//  DETAIL PANEL
-// ============================================================
-function openDetail(op){
-  document.getElementById('detailTitle').textContent = op.name;
-  const sc = STATUS_CLASS[op.status] || 's-open';
-  document.getElementById('detailBody').innerHTML = `
-    <div class="detail-field"><span class="df-label">Date</span><span class="df-val">${fmtDate(op.date)}</span></div>
-    <div class="detail-field"><span class="df-label">Type</span><span class="df-val">${TYPE_LABELS[op.type]}</span></div>
-    <div class="detail-field"><span class="df-label">Game master</span><span class="df-val">${op.gm}</span></div>
-    <div class="detail-field"><span class="df-label">Map</span><span class="df-val">${op.map}</span></div>
-    <div class="detail-field"><span class="df-label">Player cap</span><span class="df-val">${op.players}</span></div>
-    <div class="detail-field"><span class="df-label">Status</span><span class="df-val"><span class="status-tag ${sc}">${op.status.toUpperCase()}</span></span></div>
-    ${op.notes ? `<div class="detail-field full"><span class="df-label">Notes</span><span class="df-val">${op.notes}</span></div>` : ''}
-  `;
-  document.getElementById('detailFooter').textContent = 'To update this op, edit the OPS array in index.html';
-  document.getElementById('detailOverlay').classList.add('open');
-}
-
-function closeDetail(e){
-  if(!e || e.target === document.getElementById('detailOverlay')){
-    document.getElementById('detailOverlay').classList.remove('open');
+function makePill(op, type){
+  const meta = TYPE_META[type] || TYPE_META.sunday;
+  const pill = document.createElement("div");
+  pill.className = "event-pill " + meta.pillClass;
+  pill.textContent = op.name || "Open slot";
+  if(type !== "open"){
+    pill.onclick = (e) => { e.stopPropagation(); openModal(op); };
   }
+  return pill;
+}
+
+// ============================================================
+//  MODAL
+// ============================================================
+function openModal(op){
+  const meta = TYPE_META[op.type] || TYPE_META.sunday;
+  const statusClass = {
+    APPROVED:"badge-approved", PENDING:"badge-pending",
+    CANCELLED:"badge-cancelled", OPEN:"badge-open"
+  }[op.status] || "badge-open";
+
+  document.getElementById("modalBar").style.background = meta.bar;
+  document.getElementById("modalTitle").textContent = op.name || "Unnamed operation";
+  document.getElementById("modalDate").textContent  = fmtFull(op.date);
+  document.getElementById("modalBody").innerHTML = `
+    <div class="mf"><span class="mf-label">Type</span><span class="mf-val">${meta.label}</span></div>
+    <div class="mf"><span class="mf-label">Status</span><span class="mf-val"><span class="status-badge ${statusClass}">${op.status}</span></span></div>
+    <div class="mf"><span class="mf-label">Game Master</span><span class="mf-val">${op.gm || "—"}</span></div>
+    <div class="mf"><span class="mf-label">Map</span><span class="mf-val">${op.map || "—"}</span></div>
+    ${op.notes ? `<div class="mf full"><span class="mf-label">Notes</span><span class="mf-val">${op.notes}</span></div>` : ""}
+  `;
+  document.getElementById("modalFooter").textContent = "Status is managed by O7 in the OTAC Google Sheet.";
+  document.getElementById("modalBg").classList.add("open");
+}
+
+function closeModal(e){
+  if(!e || e.target === document.getElementById("modalBg")){
+    document.getElementById("modalBg").classList.remove("open");
+  }
+}
+
+document.addEventListener("keydown", e => { if(e.key==="Escape") closeModal(); });
+
+// ============================================================
+//  NAVIGATION
+// ============================================================
+function jumpTo(id){
+  const el = document.getElementById(id);
+  if(el) el.scrollIntoView({ behavior:"smooth", block:"start" });
 }
 
 function scrollToToday(){
-  const blocks = document.querySelectorAll('.month-block');
-  if(blocks.length) blocks[0].scrollIntoView({behavior:'smooth'});
+  const today = new Date();
+  jumpTo(`month-${today.getFullYear()}-${today.getMonth()}`);
+}
+
+function highlightCurrentMonth(){
+  const today = new Date();
+  const id = `jump-${today.getFullYear()}-${today.getMonth()}`;
+  const btn = document.getElementById(id);
+  if(btn) btn.classList.add("active");
+}
+
+// Intersection observer to highlight month jump as you scroll
+function setupScrollSpy(){
+  const sections = document.querySelectorAll(".month-section");
+  const observer = new IntersectionObserver(entries => {
+    entries.forEach(entry => {
+      if(entry.isIntersecting){
+        document.querySelectorAll(".month-jump").forEach(b => b.classList.remove("active"));
+        const id = entry.target.id.replace("month-","jump-");
+        const btn = document.getElementById(id);
+        if(btn) btn.classList.add("active");
+      }
+    });
+  }, { threshold: 0.3 });
+  sections.forEach(s => observer.observe(s));
 }
 
 // ============================================================
 //  INIT
 // ============================================================
-renderStats();
-renderCalendar();
+(async () => {
+  try {
+    const data = await fetchData();
+    buildCalendar(data);
+    setupScrollSpy();
+  } catch(e) {
+    document.getElementById("main").innerHTML = `
+      <div class="error-state">
+        <div style="font-size:18px;font-weight:700;">Could not load schedule</div>
+        <p>${e.message}</p>
+        <p style="margin-top:8px;">Check that the Apps Script URL is set correctly in index.html</p>
+      </div>`;
+  }
+})();
 </script>
 </body>
 </html>
